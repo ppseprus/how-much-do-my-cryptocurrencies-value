@@ -23,7 +23,6 @@
 		}
 	],
 	"fiats": {
-		// Remaining balance at the exchange(s)
 		"eur": 50,
 		"usd": 100
 	}
