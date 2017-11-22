@@ -10,3 +10,7 @@ I recently started to experiment with _cryptocurrencies_ and I wanted to have a 
 
 1. Log your transactions in the _assets.json_ (See the _example.json_ for help) 
 2. `node index`
+
+## Disclaimer
+
+This is only a snipet, nothing more. I was too lazy doing something else...
