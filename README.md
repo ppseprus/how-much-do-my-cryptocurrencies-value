@@ -8,8 +8,10 @@ I recently started experimenting with _cryptocurrencies_ and I wanted to have a 
 
 ## How to use
 
-1. Log your transactions in the _assets.json_ (See the _example.json_ for help) 
-2. `node index`
+1. Log your assets in the _assets.json_ (see the _example.json_ for help)
+	- _crpytos_ should contain all your transactions
+	- _fiats_ should show the remaining balance you have at the exchange(s)
+2. Run `node index`
 
 ## Disclaimer
 
