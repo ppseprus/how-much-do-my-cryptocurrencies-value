@@ -4,7 +4,7 @@ A dead simple crypto-balance calculator
 
 ## Why?
 
-I recently started to experiment with _cryptocurrencies_ and I wanted to have a simple snipet that tells me my current, would-be balance — the current value of all my assets in their original buy-in _fiat_.
+I recently started experimenting with _cryptocurrencies_ and I wanted to have a simple snippet that tells me my current, would-be balance — the current value of all my assets in their original buy-in _fiat_.
 
 ## How to use
 
@@ -13,4 +13,4 @@ I recently started to experiment with _cryptocurrencies_ and I wanted to have a 
 
 ## Disclaimer
 
-This is only a snipet, nothing more. I was too lazy doing something else...
+This is only a snippet, nothing more. I was too lazy doing something else...
