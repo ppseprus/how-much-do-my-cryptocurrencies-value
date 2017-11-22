@@ -1,0 +1,30 @@
+{
+	"cryptos": [
+		{
+			"fiat": "eur",
+			"crypto": "eth",
+			"market": "kraken",
+			"amount": 0.1,
+			"price": 250
+		},
+		{
+			"fiat": "eur",
+			"crypto": "eth",
+			"market": "kraken",
+			"amount": 0.1,
+			"price": 260
+		},
+		{
+			"fiat": "usd",
+			"crypto": "btc",
+			"market": "kraken",
+			"amount": 0.1,
+			"price": 5000
+		}
+	],
+	"fiats": {
+		// Remaining balance at the exchange(s)
+		"eur": 50,
+		"usd": 100
+	}
+}
