@@ -1,8 +1,8 @@
 const request = require('request-promise')
 const assets = require('./assets.json')
 
-const precision = 2;
-const padding = precision + 1 + 5;
+const precision = 2
+const padding = precision + 1 + 5
 
 Promise
 	.all(assets.cryptos.map(getDetails))
@@ -56,13 +56,13 @@ function display(obj) {
 		.keys(obj)
 		.forEach(fiat => {
 			let ccy = fiat.toLocaleUpperCase()
-			let remaining = padLeft(obj[fiat].remaining.toFixed(precision), padding * 2 + 7)
-			let investment = padLeft(obj[fiat].investment.toFixed(precision))
-			let value = padLeft(obj[fiat].value.toFixed(precision))
+			let remaining = pad(obj[fiat].remaining.toFixed(precision), padding * 2 + 7)
+			let investment = pad(obj[fiat].investment.toFixed(precision))
+			let value = pad(obj[fiat].value.toFixed(precision))
 			let percentage = obj[fiat].profit / ( obj[fiat].investment / 100 )
 			let sign = percentage > 0 ? '+' : ''
-			percentage = padLeft(sign + percentage.toFixed(precision))
-			let total = padLeft((obj[fiat].remaining + obj[fiat].value).toFixed(precision), padding * 2 + 7)
+			percentage = pad(sign + percentage.toFixed(precision))
+			let total = pad((obj[fiat].remaining + obj[fiat].value).toFixed(precision), padding * 2 + 7)
 
 			console.log()
 			console.log(`${remaining}${ccy}`)
@@ -72,7 +72,7 @@ function display(obj) {
 		})
 }
 
-function padLeft(str, pad = padding) {
+function pad(str, pad = padding) {
 	if (str.length >= pad) {
 		return str;
 	}
