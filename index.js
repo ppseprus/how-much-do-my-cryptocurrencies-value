@@ -4,7 +4,10 @@ const assets = require('./assets.json')
 const precision = 2
 const padding = precision + 1 + 5
 
+const refreshRate = 1000 * 60 * 5
+
 processFlow()
+setInterval(processFlow, refreshRate)
 
 function getDetails(asset) {
 	return request({
@@ -21,6 +24,10 @@ function getDetails(asset) {
 		}))
 }
 
+function clearConsole(responses) {
+    process.stdout.write('\x1Bc')
+    return responses
+}
 
 function displayIndividualIncrease(responses) {
     console.log()
@@ -81,7 +88,7 @@ function display(obj) {
 			console.log(`${investment}${ccy} -> ${value}${ccy} ${percentage}%`)
 			console.log(`${Array(padding * 3 + 13).fill('-').join('')}`)
 			console.log(`${total}${ccy}`)
-		})
+        })
 
     return obj
 }
@@ -97,6 +104,7 @@ function errorHandler(errorStack) {
 function processFlow() {
     Promise
         .all(assets.cryptos.map(getDetails))
+        .then(clearConsole)
         .then(displayIndividualIncrease)
         .then(aggregateAssets)
         .then(display)
