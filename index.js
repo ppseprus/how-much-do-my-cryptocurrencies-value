@@ -66,6 +66,7 @@ function display(obj) {
 			console.log(`${total}${ccy}`)
 		})
 
+    return obj
 }
 
 function errorHandler(errorStack) {
