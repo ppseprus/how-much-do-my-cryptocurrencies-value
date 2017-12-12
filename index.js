@@ -4,12 +4,7 @@ const assets = require('./assets.json')
 const precision = 2
 const padding = precision + 1 + 5
 
-Promise
-	.all(assets.cryptos.map(getDetails))
-	.then(aggregateAssets)
-	.then(display)
-	.catch(error => console.log)
-
+processFlow()
 
 function getDetails(asset) {
 	return request({
@@ -70,6 +65,12 @@ function display(obj) {
 			console.log(`${Array(padding * 3 + 13).fill('-').join('')}`)
 			console.log(`${total}${ccy}`)
 		})
+function processFlow() {
+    Promise
+        .all(assets.cryptos.map(getDetails))
+        .then(aggregateAssets)
+        .then(display)
+        .catch(error => console.log(error))
 }
 
 function pad(str, pad = padding) {
