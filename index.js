@@ -65,12 +65,23 @@ function display(obj) {
 			console.log(`${Array(padding * 3 + 13).fill('-').join('')}`)
 			console.log(`${total}${ccy}`)
 		})
+
+}
+
+function errorHandler(errorStack) {
+    if (errorStack.error) {
+        console.log(errorStack.error.error)
+    } else {
+        console.log(errorStack)
+    }
+}
+
 function processFlow() {
     Promise
         .all(assets.cryptos.map(getDetails))
         .then(aggregateAssets)
         .then(display)
-        .catch(error => console.log(error))
+        .catch(errorHandler)
 }
 
 function pad(str, pad = padding) {
