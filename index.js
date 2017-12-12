@@ -21,6 +21,23 @@ function getDetails(asset) {
 		}))
 }
 
+
+function displayIndividualIncrease(responses) {
+    console.log()
+
+    responses
+        .forEach(obj => {
+            let label = pad(`${obj.crypto}-${obj.fiat}`.toUpperCase(), padding + 3)
+            let profit = pad(obj.profit.toFixed(2))
+            let percentage = obj.profit / ( obj.investment / 100 )
+            percentage = pad(percentage.toFixed(precision))
+
+            console.log(`${label} -> ${profit}${obj.fiat.toUpperCase()} ${percentage}%`)
+        })
+
+    return responses
+}
+
 function aggregateAssets(responses) {
 	return responses
 		.reduce((obj, { fiat, investment, value, profit }) => {
@@ -80,6 +97,7 @@ function errorHandler(errorStack) {
 function processFlow() {
     Promise
         .all(assets.cryptos.map(getDetails))
+        .then(displayIndividualIncrease)
         .then(aggregateAssets)
         .then(display)
         .catch(errorHandler)
