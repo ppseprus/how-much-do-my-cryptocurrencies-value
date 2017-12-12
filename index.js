@@ -1,10 +1,11 @@
 const request = require('request-promise')
 const assets = require('./assets.json')
 
-const precision = 2
-const padding = precision + 1 + 5
-
 const refreshRate = 1000 * 60 * 5
+
+const precision = 2
+const columnWidth = precision + 6
+const columnShift = columnWidth * 2 + 7
 
 processFlow()
 setInterval(processFlow, refreshRate)
@@ -34,10 +35,10 @@ function displayIndividualIncrease(responses) {
 
     responses
         .forEach(obj => {
-            let label = pad(`${obj.crypto}-${obj.fiat}`.toUpperCase(), padding + 3)
-            let profit = pad(obj.profit.toFixed(2))
+            let label = format(`${obj.crypto}-${obj.fiat}`.toUpperCase(), columnWidth + 3)
+            let profit = format(obj.profit.toFixed(2))
             let percentage = obj.profit / ( obj.investment / 100 )
-            percentage = pad(percentage.toFixed(precision))
+            percentage = format(percentage.toFixed(precision))
 
             console.log(`${label} -> ${profit}${obj.fiat.toUpperCase()} ${percentage}%`)
         })
@@ -74,20 +75,25 @@ function display(obj) {
 	Object
 		.keys(obj)
 		.forEach(fiat => {
-			let ccy = fiat.toLocaleUpperCase()
-			let remaining = pad(obj[fiat].remaining.toFixed(precision), padding * 2 + 7)
-			let investment = pad(obj[fiat].investment.toFixed(precision))
-			let value = pad(obj[fiat].value.toFixed(precision))
-			let percentage = obj[fiat].profit / ( obj[fiat].investment / 100 )
-			let sign = percentage > 0 ? '+' : ''
-			percentage = pad(sign + percentage.toFixed(precision))
-			let total = pad((obj[fiat].remaining + obj[fiat].value).toFixed(precision), padding * 2 + 7)
+            let o = obj[fiat]
 
-			console.log()
-			console.log(`${remaining}${ccy}`)
-			console.log(`${investment}${ccy} -> ${value}${ccy} ${percentage}%`)
-			console.log(`${Array(padding * 3 + 13).fill('-').join('')}`)
-			console.log(`${total}${ccy}`)
+            let ccy			= fiat.toUpperCase()
+            let remaining	= format(o.remaining, columnShift)
+            let investment	= format(o.investment)
+            let value		= format(o.value)
+            let difference	= format(o.value - o.investment, columnWidth, true)
+            let percentage	= format(o.profit / (o.investment / 100), columnWidth, true)
+            let total		= format(o.remaining + o.value, columnShift)
+
+            let rows = [
+                ``,
+                `${remaining}${ccy}`,
+                `${investment}${ccy} -> ${value}${ccy} ${difference}${ccy} ${percentage}%`,
+                Array(columnWidth * 4 + 16).fill('-').join(''),
+                `${total}${ccy}`
+            ]
+
+            rows.forEach(row => console.log(row))
         })
 
     return obj
@@ -111,10 +117,21 @@ function processFlow() {
         .catch(errorHandler)
 }
 
-function pad(str, pad = padding) {
-	if (str.length >= pad) {
+function format(n, padding = columnWidth, withSign = false) {
+    let str
+    if (n.toFixed) {
+        str = n.toFixed(precision)
+    } else {
+        str = n.toString()
+    }
+
+	if (withSign && n > 0) {
+		str = `+${n.toFixed(precision)}`
+	}
+
+	if (str.length >= padding) {
 		return str;
 	}
 
-	return Array(pad - str.length).fill(' ').join('').concat(str)
+	return Array(padding - str.length).fill(' ').join('').concat(str)
 }
