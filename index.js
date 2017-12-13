@@ -27,6 +27,7 @@ function getDetails(asset) {
 
 function clearConsole(responses) {
     process.stdout.write('\x1Bc')
+    console.log(new Date().toISOString())
     return responses
 }
 
