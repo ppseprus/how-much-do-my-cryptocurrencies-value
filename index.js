@@ -36,9 +36,9 @@ function displayIndividualIncrease(responses) {
     responses
         .forEach(obj => {
             let label = format(`${obj.crypto}-${obj.fiat}`.toUpperCase(), columnWidth + 3)
-            let profit = format(obj.profit.toFixed(2))
+            let profit = format(obj.profit)
             let percentage = obj.profit / ( obj.investment / 100 )
-            percentage = format(percentage.toFixed(precision))
+            percentage = format(percentage, columnWidth, true)
 
             console.log(`${label} -> ${profit}${obj.fiat.toUpperCase()} ${percentage}%`)
         })
@@ -121,13 +121,12 @@ function format(n, padding = columnWidth, withSign = false) {
     let str
     if (n.toFixed) {
         str = n.toFixed(precision)
+        if (withSign && n > 0) {
+            str = `+${n.toFixed(precision)}`
+        }
     } else {
         str = n.toString()
     }
-
-	if (withSign && n > 0) {
-		str = `+${n.toFixed(precision)}`
-	}
 
 	if (str.length >= padding) {
 		return str;
