@@ -37,10 +37,10 @@ function displayIndividualIncrease(responses) {
         .forEach(obj => {
             let label = format(`${obj.crypto}-${obj.fiat}`.toUpperCase(), columnWidth + 3)
             let profit = format(obj.profit)
-            let percentage = obj.profit / ( obj.investment / 100 )
-            percentage = format(percentage, columnWidth, true)
+            let increase = obj.profit / ( obj.investment / 100 )
+            increase = format(increase, columnWidth, true)
 
-            console.log(`${label} -> ${profit}${obj.fiat.toUpperCase()} ${percentage}%`)
+            console.log(`${label} -> ${profit}${obj.fiat.toUpperCase()} ${increase}%`)
         })
 
     return responses
@@ -82,13 +82,13 @@ function display(obj) {
             let investment	= format(o.investment)
             let value		= format(o.value)
             let difference	= format(o.value - o.investment, columnWidth, true)
-            let percentage	= format(o.profit / (o.investment / 100), columnWidth, true)
+            let increase	= format(o.profit / (o.investment / 100), columnWidth, true)
             let total		= format(o.remaining + o.value, columnShift)
 
             let rows = [
                 ``,
                 `${remaining}${ccy}`,
-                `${investment}${ccy} -> ${value}${ccy} ${difference}${ccy} ${percentage}%`,
+                `${investment}${ccy} -> ${value}${ccy} ${difference}${ccy} ${increase}%`,
                 Array(columnWidth * 4 + 16).fill('-').join(''),
                 `${total}${ccy}`
             ]
