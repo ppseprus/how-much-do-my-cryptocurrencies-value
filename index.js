@@ -14,16 +14,20 @@ function getDetails(asset) {
 	return request({
 			url: `https://api.cryptowat.ch/markets/${asset.market}/${asset.crypto}${asset.fiat}/price`,
 			json: true
-		})
+        })
 		.then(response => ({
-			fiat: asset.fiat,
-			crypto: asset.crypto,
-			investment: asset.amount * asset.price,
-			value: asset.amount * response.result.price,
-			profit: asset.amount * response.result.price -
-				asset.amount * asset.price
-		}))
+            fiat: asset.fiat,
+            crypto: asset.crypto,
+            investment: asset.amount * asset.price,
+            value: asset.amount * response.result.price,
+            profit: asset.amount * response.result.price -
+                asset.amount * asset.price
+        }))
         .catch(errorHandler)
+}
+
+function filterEmpty(responses) {
+    return responses.filter(obj => obj !== undefined)
 }
 
 function clearConsole(responses) {
@@ -38,7 +42,7 @@ function displayIndividualIncrease(responses) {
     responses
         .forEach(obj => {
             let label = format(`${obj.crypto}-${obj.fiat}`.toUpperCase(), columnWidth + 3)
-            let profit = format(obj.profit)
+            let profit = format(obj.profit, columnWidth, true)
             let increase = obj.profit / ( obj.investment / 100 )
             increase = format(increase, columnWidth, true)
 
@@ -49,7 +53,7 @@ function displayIndividualIncrease(responses) {
 }
 
 function aggregateAssets(responses) {
-	return responses
+    return responses
 		.reduce((obj, { fiat, investment, value, profit }) => {
 			if (!obj.hasOwnProperty(fiat)) {
 				obj[fiat] = {
@@ -74,6 +78,11 @@ function aggregateAssets(responses) {
 }
 
 function display(obj) {
+    if (Object.keys(obj).length === 0) {
+        console.log(`Service unavailable`)
+        return obj
+    }
+
 	Object
 		.keys(obj)
 		.forEach(fiat => {
@@ -112,6 +121,7 @@ function errorHandler(errorStack) {
 function processFlow() {
     Promise
         .all(assets.cryptos.map(getDetails))
+        .then(filterEmpty)
         .then(clearConsole)
         .then(displayIndividualIncrease)
         .then(aggregateAssets)
