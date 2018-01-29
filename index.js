@@ -23,6 +23,7 @@ function getDetails(asset) {
 			profit: asset.amount * response.result.price -
 				asset.amount * asset.price
 		}))
+        .catch(errorHandler)
 }
 
 function clearConsole(responses) {
