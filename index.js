@@ -1,5 +1,7 @@
 const request = require('request-promise')
-const assets = require('./assets.json')
+
+// the actual assets are stored in a private gist on github
+const assets = require('../assets/assets.json')
 
 const refreshRate = 1000 * 60 * 5
 
