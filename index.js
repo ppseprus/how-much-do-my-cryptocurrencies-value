@@ -27,7 +27,9 @@ function getDetails(asset) {
 }
 
 function filterEmpty(responses) {
-    return responses.filter(obj => obj !== undefined)
+    return responses
+        .filter(obj => obj !== undefined)
+        .filter(obj => obj !== null)
 }
 
 function clearConsole(responses) {
