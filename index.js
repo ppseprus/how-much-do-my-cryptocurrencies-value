@@ -7,7 +7,7 @@ const refreshRate = 1000 * 60 * 5
 
 const precision = 2
 const columnWidth = precision + 6
-const columnShift = columnWidth * 2 + 7
+const columnShift = columnWidth * 2 + 11
 
 processFlow()
 setInterval(processFlow, refreshRate)
@@ -41,16 +41,22 @@ function clearConsole(responses) {
 }
 
 function displayIndividualIncrease(responses) {
-    console.log()
+    let previousCrypto
 
     responses
         .forEach(obj => {
-            let label = format(`${obj.crypto}-${obj.fiat}`.toUpperCase(), columnWidth + 3)
+            if (previousCrypto != obj.crypto) {
+                console.log()
+                previousCrypto = obj.crypto;
+            }
+
+            let label = format(`${obj.fiat}/${obj.crypto}`.toUpperCase(), 7)
+            let investment = format(obj.investment)
             let profit = format(obj.profit, columnWidth, true)
             let increase = obj.profit / ( obj.investment / 100 )
             increase = format(increase, columnWidth, true)
 
-            console.log(`${label} -> ${profit}${obj.fiat.toUpperCase()} ${increase}%`)
+            console.log(`${investment}${label} -> ${profit}${obj.fiat.toUpperCase()} ${increase}%`)
         })
 
     return responses
@@ -102,9 +108,10 @@ function display(obj) {
 
             let rows = [
                 ``,
+                ``,
                 `${remaining}${ccy}`,
-                `${investment}${ccy} -> ${value}${ccy} ${difference}${ccy} ${increase}%`,
-                Array(columnWidth * 4 + 16).fill('-').join(''),
+                `${investment}${ccy}     -> ${value}${ccy} ${increase}% ${difference}${ccy}`,
+                Array(columnWidth * 4 + 20).fill('-').join(''),
                 `${total}${ccy}`
             ]
 
