@@ -7,19 +7,18 @@ const refreshRate = 1000 * 60 * 5
 
 const precision = 2
 const columnWidth = precision + 6
-const columnShift = columnWidth * 2 + 11
+const columnShift = columnWidth * 2 + 34
 
 processFlow()
 setInterval(processFlow, refreshRate)
 
 function getDetails(asset) {
-	return request({
+    return request({
 			url: `https://api.cryptowat.ch/markets/${asset.market}/${asset.crypto}${asset.fiat}/price`,
 			json: true
         })
 		.then(response => ({
-            fiat: asset.fiat,
-            crypto: asset.crypto,
+            ...asset,
             investment: asset.amount * asset.price,
             value: asset.amount * response.result.price,
             profit: asset.amount * response.result.price -
@@ -36,7 +35,8 @@ function filterEmpty(responses) {
 
 function clearConsole(responses) {
     process.stdout.write('\x1Bc')
-    console.log(new Date().toISOString())
+    console.log(color(new Date().toISOString()).dim)
+    console.log(color(`response success rate: ${responses.length / (assets.cryptos.length / 100)}%`).dim)
     return responses
 }
 
@@ -50,13 +50,14 @@ function displayIndividualIncrease(responses) {
                 previousCrypto = obj.crypto;
             }
 
-            let label = format(`${obj.fiat}/${obj.crypto}`.toUpperCase(), 7)
+            let amount = format(`${obj.amount.toFixed(3)}`, 9)
+            let price = format(`${obj.price.toFixed(3)}`, 9)
             let investment = format(obj.investment)
-            let profit = format(obj.profit, columnWidth, true)
+            let profit = color(format(obj.profit, columnWidth, true)).bright
             let increase = obj.profit / ( obj.investment / 100 )
             increase = format(increase, columnWidth, true)
 
-            console.log(`${investment}${label} -> ${profit}${obj.fiat.toUpperCase()} ${increase}%`)
+            console.log(`${amount}${color(obj.crypto.toUpperCase()).dim} ${color('@').dim} ${price}${color(obj.fiat.toUpperCase()).dim} ${color('=').dim} ${investment} ${color('->').dim} ${profit}${color(obj.fiat.toUpperCase()).dim} ${increase}${color('%').dim}`)
         })
 
     return responses
@@ -100,19 +101,21 @@ function display(obj) {
 
             let ccy			= fiat.toUpperCase()
             let remaining	= format(o.remaining, columnShift)
-            let investment	= format(o.investment)
-            let value		= format(o.value)
-            let difference	= format(o.value - o.investment, columnWidth, true)
-            let increase	= format(o.profit / (o.investment / 100), columnWidth, true)
-            let total		= format(o.remaining + o.value, columnShift)
+            let investment	= color(format(o.investment, columnShift)).bright
+            //let value		= color(format(o.value, columnShift)).bright
+            let difference	= color(format(o.value - o.investment, columnShift, true)).bright
+            let increase	= color(format(o.profit / (o.investment / 100), columnWidth, true)).fgCyan
+            let total		= color(format(o.remaining + o.value, columnShift)).bright
 
             let rows = [
                 ``,
                 ``,
-                `${remaining}${ccy}`,
-                `${investment}${ccy}     -> ${value}${ccy} ${increase}% ${difference}${ccy}`,
-                Array(columnWidth * 4 + 20).fill('-').join(''),
-                `${total}${ccy}`
+                `${remaining}${color(ccy).dim}`,
+                `${investment}${color(ccy).dim}`,
+                `${difference}${color(ccy).dim} ${increase}${color('%').dim}`,
+                //`${value}${color(ccy).dim}`,
+                Array(columnWidth * 4 + 31).fill('-').join(''),
+                `${total}${color(ccy).dim}`
             ]
 
             rows.forEach(row => console.log(row))
@@ -156,4 +159,13 @@ function format(n, padding = columnWidth, withSign = false) {
 	}
 
 	return Array(padding - str.length).fill(' ').join('').concat(str)
+}
+
+function color(text) {
+    const reset = '\x1b[0m'
+    return {
+        bright: `\x1b[1m${text}${reset}`,
+        dim: `\x1b[2m${text}${reset}`,
+        fgCyan: `\x1b[36m${text}${reset}`
+    }
 }
