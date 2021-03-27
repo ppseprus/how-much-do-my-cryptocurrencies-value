@@ -1,4 +1,4 @@
-const request = require('request-promise')
+const fetch = require('node-fetch')
 
 // the actual assets are stored in a private gist on github
 const assets = require('../assets/assets.json')
@@ -22,10 +22,13 @@ processFlow()
 setInterval(processFlow, refreshRate)
 
 function getDetails(asset) {
-    return request({
-			url: `https://api.cryptowat.ch/markets/${asset.market}/${asset.crypto}${asset.fiat}/price`,
-			json: true
+    return fetch(`https://api.cryptowat.ch/markets/${asset.market}/${asset.crypto}${asset.fiat}/price`, {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'ppseprus:how-much-do-my-cryptocurrencies-value'
+            }
         })
+        .then(httpResponse => httpResponse.json())
 		.then(response => ({
             ...asset,
             price: asset.price || 0,
