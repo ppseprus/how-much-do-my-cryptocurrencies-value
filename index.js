@@ -5,9 +5,18 @@ const assets = require('../assets/assets.json')
 
 const refreshRate = 1000 * 60 * 5
 
-const precision = 2
-const columnWidth = precision + 6
-const columnShift = columnWidth * 2 + 34
+const fiatLabel = 3
+const fiatPrecision = 2
+const fiatColumn = fiatPrecision + 7
+
+const cryptoLabel = 5
+const cryptoPrecision = 5
+const cryptoColumn = cryptoPrecision + 5
+
+const percentPrecision = 2
+const percentColumn = percentPrecision + 5
+
+const columnShift = cryptoColumn + cryptoLabel + 3 + fiatColumn + fiatLabel + 3 + fiatColumn + 4
 
 processFlow()
 setInterval(processFlow, refreshRate)
@@ -19,10 +28,11 @@ function getDetails(asset) {
         })
 		.then(response => ({
             ...asset,
-            investment: asset.amount * asset.price,
+            price: asset.price || 0,
+            investment: asset.amount * (asset.price || 0),
             value: asset.amount * response.result.price,
             profit: asset.amount * response.result.price -
-                asset.amount * asset.price
+                asset.amount * (asset.price || 0)
         }))
         .catch(errorHandler)
 }
@@ -36,7 +46,21 @@ function filterEmpty(responses) {
 function clearConsole(responses) {
     process.stdout.write('\x1Bc')
     console.log(color(new Date().toISOString()).dim)
-    console.log(color(`response success rate: ${responses.length / (assets.cryptos.length / 100)}%`).dim)
+    console.log(color(`response success rate: ${(responses.length / (assets.cryptos.length / 100)).toFixed(2)}%`).dim)
+    return responses
+}
+
+function displayColumnHeaders(responses) {
+    let headers = ''
+    headers += 'QTY'.padStart(cryptoColumn).padEnd(cryptoColumn + cryptoLabel + 3)
+    headers += 'PRICE'.padStart(fiatColumn).padEnd(fiatColumn + fiatLabel + 3)
+    headers += 'INV'.padStart(fiatColumn).padEnd(fiatColumn + 4)
+    headers += 'VALUE'.padStart(fiatColumn).padEnd(fiatColumn + fiatLabel + 1)
+    headers += 'CHNG'.padStart(percentColumn).padEnd(percentColumn + 4)
+
+    console.log()
+    console.log(headers)
+
     return responses
 }
 
@@ -47,17 +71,28 @@ function displayIndividualIncrease(responses) {
         .forEach(obj => {
             if (previousCrypto != obj.crypto) {
                 console.log()
-                previousCrypto = obj.crypto;
+                previousCrypto = obj.crypto
             }
 
-            let amount = format(`${obj.amount.toFixed(3)}`, 9)
-            let price = format(`${obj.price.toFixed(3)}`, 9)
-            let investment = format(obj.investment)
-            let profit = color(format(obj.profit, columnWidth, true)).bright
-            let increase = obj.profit / ( obj.investment / 100 )
-            increase = format(increase, columnWidth, true)
+            let crypto = color(obj.crypto.toUpperCase().padEnd(cryptoLabel)).dim
+            let ccy = color(obj.fiat.toUpperCase().padEnd(fiatLabel)).dim
 
-            console.log(`${amount}${color(obj.crypto.toUpperCase()).dim} ${color('@').dim} ${price}${color(obj.fiat.toUpperCase()).dim} ${color('=').dim} ${investment} ${color('->').dim} ${profit}${color(obj.fiat.toUpperCase()).dim} ${increase}${color('%').dim}`)
+            let amount = `${format(obj.amount, cryptoPrecision, cryptoColumn)}`
+            let price = `${format(obj.price, fiatPrecision, fiatColumn)}`
+            let investment = format(obj.investment, fiatPrecision, fiatColumn)
+            let profit = color(format(obj.profit, fiatPrecision, fiatColumn, true)).bright
+
+
+            let increase = obj.profit / ( obj.investment / 100 )
+            increase = format(increase, percentPrecision, percentColumn, true)
+
+            if (obj.price === 0) {
+                price = format('')
+                console.log(`${amount}${crypto}   ${price}      ${investment} ${color('>>').dim} ${profit}${ccy}`)
+                return
+            }
+
+            console.log(`${amount}${crypto} ${color('@').dim} ${price}${ccy} ${color('=').dim} ${investment} ${color('>>').dim} ${profit}${ccy} ${increase}${color('%').dim}`)
         })
 
     return responses
@@ -100,22 +135,22 @@ function display(obj) {
             let o = obj[fiat]
 
             let ccy			= fiat.toUpperCase()
-            let remaining	= format(o.remaining, columnShift)
-            let investment	= color(format(o.investment, columnShift)).bright
-            //let value		= color(format(o.value, columnShift)).bright
-            let difference	= color(format(o.value - o.investment, columnShift, true)).bright
-            let increase	= color(format(o.profit / (o.investment / 100), columnWidth, true)).fgCyan
-            let total		= color(format(o.remaining + o.value, columnShift)).bright
+
+            let remaining	= format(o.remaining, fiatPrecision, fiatColumn)
+            let investment	= color(format(o.investment, fiatPrecision, fiatColumn)).bright
+            let difference	= color(format(o.value - o.investment, fiatPrecision, fiatColumn, true)).bright
+            let increase	= color(format(o.profit / (o.investment / 100), percentPrecision, percentColumn, true)).fgCyan
+            let total		= color(format(o.remaining + o.value, fiatPrecision, fiatColumn)).bright
 
             let rows = [
                 ``,
                 ``,
-                `${remaining}${color(ccy).dim}`,
-                `${investment}${color(ccy).dim}`,
-                `${difference}${color(ccy).dim} ${increase}${color('%').dim}`,
+                `${'REMAINING FIAT'.padEnd(columnShift)} ${remaining}${color(ccy).dim}`,
+                `${'INVESTMENT'.padEnd(columnShift)} ${investment}${color(ccy).dim}`,
+                `${'PROFIT'.padEnd(columnShift)} ${difference}${color(ccy).dim} ${increase}${color('%').dim}`,
                 //`${value}${color(ccy).dim}`,
-                Array(columnWidth * 4 + 31).fill('-').join(''),
-                `${total}${color(ccy).dim}`
+                Array(columnShift + fiatLabel + percentColumn + 2).fill('-').join(''),
+                `${'TOTAL VALUE'.padEnd(columnShift)} ${total}${color(ccy).dim}`
             ]
 
             rows.forEach(row => console.log(row))
@@ -137,13 +172,14 @@ function processFlow() {
         .all(assets.cryptos.map(getDetails))
         .then(filterEmpty)
         .then(clearConsole)
+        .then(displayColumnHeaders)
         .then(displayIndividualIncrease)
         .then(aggregateAssets)
         .then(display)
         .catch(errorHandler)
 }
 
-function format(n, padding = columnWidth, withSign = false) {
+function format(n, precision, column, withSign = false) {
     let str
     if (n.toFixed) {
         str = n.toFixed(precision)
@@ -154,11 +190,11 @@ function format(n, padding = columnWidth, withSign = false) {
         str = n.toString()
     }
 
-	if (str.length >= padding) {
+	if (str.length >= column) {
 		return str;
 	}
 
-	return Array(padding - str.length).fill(' ').join('').concat(str)
+	return str.padStart(column)
 }
 
 function color(text) {
