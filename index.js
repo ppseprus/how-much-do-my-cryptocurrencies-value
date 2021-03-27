@@ -11,12 +11,12 @@ const fiatColumn = fiatPrecision + 7
 
 const cryptoLabel = 5
 const cryptoPrecision = 5
-const cryptoColumn = cryptoPrecision + 5
+const cryptoColumn = cryptoPrecision + 6
 
 const percentPrecision = 2
 const percentColumn = percentPrecision + 5
 
-const columnShift = cryptoColumn + cryptoLabel + 3 + fiatColumn + fiatLabel + 3 + fiatColumn + 4
+const columnShift = cryptoColumn + cryptoLabel + 3 + cryptoColumn + fiatLabel + 3 + fiatColumn + 4
 
 processFlow()
 setInterval(processFlow, refreshRate)
@@ -32,6 +32,7 @@ function getDetails(asset) {
 		.then(response => ({
             ...asset,
             price: asset.price || 0,
+            currentPrice: response.result.price,
             investment: asset.amount * (asset.price || 0),
             value: asset.amount * response.result.price,
             profit: asset.amount * response.result.price -
@@ -56,7 +57,7 @@ function clearConsole(responses) {
 function displayColumnHeaders(responses) {
     let headers = ''
     headers += 'QTY'.padStart(cryptoColumn).padEnd(cryptoColumn + cryptoLabel + 3)
-    headers += 'PRICE'.padStart(fiatColumn).padEnd(fiatColumn + fiatLabel + 3)
+    headers += 'PRICE'.padStart(cryptoColumn).padEnd(cryptoColumn + fiatLabel + 3)
     headers += 'INV'.padStart(fiatColumn).padEnd(fiatColumn + 4)
     headers += 'VALUE'.padStart(fiatColumn).padEnd(fiatColumn + fiatLabel + 1)
     headers += 'CHNG'.padStart(percentColumn).padEnd(percentColumn + 4)
@@ -68,35 +69,70 @@ function displayColumnHeaders(responses) {
 }
 
 function displayIndividualIncrease(responses) {
-    let previousCrypto
+    let last
+    let cumulative = {}
+
+    function printCumulative() {
+        if (cumulative.amount && cumulative.price && cumulative.investment && cumulative.profit) {
+
+            let amount = `${format(cumulative.amount, cryptoPrecision, cryptoColumn)}`
+            let price = `${format(cumulative.price, cryptoPrecision, cryptoColumn)}`
+            let value = format(cumulative.amount * cumulative.price, fiatPrecision, fiatColumn)
+            let profit = color(format(cumulative.profit, fiatPrecision, fiatColumn, true)).bright
+            let increase = cumulative.profit / ( cumulative.investment / 100 )
+            increase = format(increase, percentPrecision, percentColumn, true)
+
+            console.log(Array(columnShift + fiatColumn + fiatLabel + percentColumn + 2).fill('-').join(''))
+            console.log(`${amount}${cumulative.crypto} ${color('@').dim} ${price}${cumulative.ccy} ${color('=').dim} ${value}    ${profit}${cumulative.ccy} ${increase}${color('%').dim}`)
+        }
+    }
 
     responses
         .forEach(obj => {
-            if (previousCrypto != obj.crypto) {
+            if (last !== obj.crypto) {
+                printCumulative()
+
                 console.log()
-                previousCrypto = obj.crypto
+
+                last = obj.crypto
+                cumulative = {
+                    amount: 0,
+                    price: 0,
+                    investment: 0,
+                    profit: 0,
+                    crypto: '',
+                    ccy: ''
+                }
             }
 
             let crypto = color(obj.crypto.toUpperCase().padEnd(cryptoLabel)).dim
             let ccy = color(obj.fiat.toUpperCase().padEnd(fiatLabel)).dim
 
             let amount = `${format(obj.amount, cryptoPrecision, cryptoColumn)}`
-            let price = `${format(obj.price, fiatPrecision, fiatColumn)}`
+            let price = `${format(obj.price, cryptoPrecision, cryptoColumn)}`
             let investment = format(obj.investment, fiatPrecision, fiatColumn)
             let profit = color(format(obj.profit, fiatPrecision, fiatColumn, true)).bright
-
 
             let increase = obj.profit / ( obj.investment / 100 )
             increase = format(increase, percentPrecision, percentColumn, true)
 
+            cumulative.amount += obj.amount
+            cumulative.price = obj.currentPrice
+            cumulative.investment += obj.investment
+            cumulative.profit += obj.profit
+            cumulative.crypto = crypto
+            cumulative.ccy = ccy
+
             if (obj.price === 0) {
                 price = format('')
-                console.log(`${amount}${crypto}   ${price}      ${investment} ${color('>>').dim} ${profit}${ccy}`)
+                //console.log(`${amount}${crypto}   ${price}      ${investment} ${color('>>').dim} ${profit}${ccy}`)
                 return
             }
 
             console.log(`${amount}${crypto} ${color('@').dim} ${price}${ccy} ${color('=').dim} ${investment} ${color('>>').dim} ${profit}${ccy} ${increase}${color('%').dim}`)
         })
+
+    printCumulative()
 
     return responses
 }
@@ -148,12 +184,11 @@ function display(obj) {
             let rows = [
                 ``,
                 ``,
-                `${'REMAINING FIAT'.padEnd(columnShift)} ${remaining}${color(ccy).dim}`,
-                `${'INVESTMENT'.padEnd(columnShift)} ${investment}${color(ccy).dim}`,
-                `${'PROFIT'.padEnd(columnShift)} ${difference}${color(ccy).dim} ${increase}${color('%').dim}`,
-                //`${value}${color(ccy).dim}`,
-                Array(columnShift + fiatLabel + percentColumn + 2).fill('-').join(''),
-                `${'TOTAL VALUE'.padEnd(columnShift)} ${total}${color(ccy).dim}`
+                `${'WALLET FIAT    '.padStart(columnShift)}${remaining}${color(ccy).dim}`,
+                `${'INVESTMENT    '.padStart(columnShift)}${investment}${color(ccy).dim}`,
+                `${'PROFIT    '.padStart(columnShift)}${difference}${color(ccy).dim} ${increase}${color('%').dim}`,
+                Array(columnShift + fiatColumn + fiatLabel + percentColumn + 2).fill('=').join(''),
+                `${'EXIT VALUE    '.padStart(columnShift)}${total}${color(ccy).dim}`
             ]
 
             rows.forEach(row => console.log(row))
