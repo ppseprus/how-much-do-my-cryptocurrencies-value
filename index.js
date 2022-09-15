@@ -31,7 +31,7 @@ function getDetails(asset) {
         .then(httpResponse => httpResponse.json())
 		.then(response => ({
             ...asset,
-            price: asset.price || 0,
+            price: asset.price || 0,
             currentPrice: response.result.price,
             investment: asset.amount * (asset.price || 0),
             value: asset.amount * response.result.price,
@@ -139,7 +139,7 @@ function displayIndividualIncrease(responses) {
 
 function aggregateAssets(responses) {
     return responses
-		.reduce((obj, { fiat, investment, value, profit }) => {
+		.reduce((obj, { fiat, investment, value, profit }) => {
 			if (!obj.hasOwnProperty(fiat)) {
 				obj[fiat] = {
 					remaining: 0,
@@ -170,7 +170,7 @@ function display(obj) {
 
 	Object
 		.keys(obj)
-		.forEach(fiat => {
+		.forEach(fiat => {
             let o = obj[fiat]
 
             let ccy			= fiat.toUpperCase()
