@@ -14,7 +14,7 @@ const cryptoPrecision = 5
 const cryptoColumn = cryptoPrecision + 6
 
 const percentPrecision = 2
-const percentColumn = percentPrecision + 5
+const percentColumn = percentPrecision + 7
 
 const columnShift = cryptoColumn + cryptoLabel + 3 + cryptoColumn + fiatLabel + 3 + fiatColumn + 4
 
