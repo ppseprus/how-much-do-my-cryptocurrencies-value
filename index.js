@@ -5,7 +5,7 @@ const assets = require('../assets/assets.json')
 
 const refreshRate = 1000 * 60 * 5
 
-const fiatLabel = 3
+const fiatLabel = 5
 const fiatPrecision = 2
 const fiatColumn = fiatPrecision + 7
 
@@ -21,23 +21,33 @@ const columnShift = cryptoColumn + cryptoLabel + 3 + cryptoColumn + fiatLabel + 
 processFlow()
 setInterval(processFlow, refreshRate)
 
+// TODO: `https://docs.kraken.com/rest/#tag/Market-Data/operation/getTickerInformation`
 function getDetails(asset) {
-    return fetch(`https://api.cryptowat.ch/markets/${asset.market}/${asset.crypto}${asset.fiat}/price`, {
+    const pair = `${asset.crypto.toUpperCase()}${asset.fiat.toUpperCase()}`
+
+    return fetch(`https://api.kraken.com/0/public/Ticker?pair=${pair}`, {
             method: 'GET',
             headers: {
                 'User-Agent': 'ppseprus:how-much-do-my-cryptocurrencies-value'
             }
         })
         .then(httpResponse => httpResponse.json())
-		.then(response => ({
+        .then(response => {
+            if (response.error.length > 0) {
+                console.log(asset.crypto)
+            }
+            return response
+        })
+		.then(({ result: {[`${pair}`]: data } }) => ({
             ...asset,
             price: asset.price || 0,
-            currentPrice: response.result.price,
+            currentPrice: data.b[0],
             investment: asset.amount * (asset.price || 0),
-            value: asset.amount * response.result.price,
-            profit: asset.amount * response.result.price -
+            value: asset.amount * data.b[0],
+            profit: asset.amount * data.b[0] -
                 asset.amount * (asset.price || 0)
-        }))
+            })
+        )
         .catch(errorHandler)
 }
 
@@ -186,7 +196,7 @@ function display(obj) {
                 ``,
                 `${'WALLET FIAT    '.padStart(columnShift)}${remaining}${color(ccy).dim}`,
                 `${'INVESTMENT    '.padStart(columnShift)}${investment}${color(ccy).dim}`,
-                `${'PROFIT    '.padStart(columnShift)}${difference}${color(ccy).dim} ${increase}${color('%').dim}`,
+                `${'PROFIT    '.padStart(columnShift)}${difference}${color(ccy).dim}   ${increase}${color('%').dim}`,
                 Array(columnShift + fiatColumn + fiatLabel + percentColumn + 2).fill('=').join(''),
                 `${'EXIT VALUE    '.padStart(columnShift)}${total}${color(ccy).dim}`
             ]
